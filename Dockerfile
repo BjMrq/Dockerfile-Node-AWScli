@@ -1,21 +1,17 @@
 # Start from Node image for tests
-FROM node:12.13.0-alpine
+FROM node:12.20.1-stretch
 
-# Install python
-RUN apk add --update coreutils \
- python3 \
- py3-pip \
- --no-cache 
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install AWS CLI
-RUN pip3 install awscli
+# Install packages
+RUN apt-get update -y && \
+  apt-get install --no-install-recommends -y curl unzip groff jq bc && \
+  rm -rf /var/lib/apt/lists/*
 
-# Prepare to receive credentials
-RUN mkdir ~/.aws/
-RUN touch ~/.aws/credentials
-RUN touch ~/.aws/config
+# Download and unzip install
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip awscliv2.zip
 
-# Copy entrypoint that will load the credentials
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
+# Run AWS install
+RUN ./aws/install
+
